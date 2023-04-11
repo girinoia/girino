@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<cabeça>
+  <title>Jogo HTML básico de Tetris</title>
+  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <estilo>
+  html, corpo {
+    altura: 100%;
+    margem: 0;
+  }
+
+  corpo {
+    fundo: preto;
+    exibição: flexível;
+    itens de alinhamento: centro;
+    justificar-conteúdo: centro;
+  }
+
+  tela {
+    borda: 1px branco sólido;
+  }
+  </estilo>
+</head>
+<corpo>
+<canvas width="320" height="640" id="game"></canvas>
+<script>
+// https://tetris.fandom.com/wiki/Tetris_Guideline
+
+// obtém um inteiro aleatório entre o intervalo de [min,max]
+// @veja https://stackoverflow.com/a/1527820/2124254
+função getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// gera uma nova sequência tetrominó
+// @veja https://tetris.fandom.com/wiki/Random_Generator
+função gerarSequência() {
+  sequência const = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+
+  while (sequência.comprimento) {
+    const rand = getRandomInt(0, sequence.length - 1);
+    const nome = sequence.splice(rand, 1)[0];
+    tetrominoSequence.push(nome);
+  }
+}
+
+// obtém o próximo tetromino na sequência
+function getNextTetromino() {
+  if (tetrominoSequence.length === 0) {
+    gerarSequência();
+  }
+
+  nome const = tetrominoSequence.pop();
+  matriz const = tetrominos[nome];
+
+  // I e O começam centralizados, todos os outros começam no meio-esquerdo
+  const col = playfield[0].length / 2 - Math.ceil(matrix[0].length / 2);
+
+  // I começa na linha 21 (-1), todos os outros começam na linha 22 (-2)
+  const linha = nome === 'eu' ? -1: -2;
+
+  retornar {
+    name: nome, // nome da peça (L, O, etc.)
+    matrix: matrix, // a matriz de rotação atual
+    row: row, // linha atual (começa fora da tela)
+    col: col // col atual
+  };
+}
+
+// gira uma matriz NxN 90deg
+// @see https://codereview.stackexchange.com/a/186834
+função rotacionar(matriz) {
+  const N = matriz.comprimento - 1;
+  const resultado = matriz.map((linha, i) =>
+    linha.map((val, j) => matriz[N - j][i])
+  );
+
+  resultado de retorno;
+}
+
+// verifica se a nova matriz/linha/coluna é válida
+função isValidMove(matriz, célulaRow, célulaCol) {
+  for (let row = 0; row < matrix.length; row++) {
+    for (deixe col = 0; col <matriz[linha].comprimento; col++) {
+      if (matriz[linha][coluna] && (
+          // fora dos limites do jogo
+          célulaCol + col < 0 ||
+          cellCol + col >= playfield[0].length ||
+          cellRow + row >= playfield.length ||
+          // colide com outra peça
+          playfield[cellRow + row][cellCol + col])
+        ) {
+        retorna falso;
+      }
+    }
+  }
+
+  retornar verdadeiro;
+}
+
+// coloca o tetrominó no campo de jogo
+function placeTetromino() {
+  for (let row = 0; row < tetromino.matrix.length; row++) {
+    for (deixe col = 0; col < tetromino.matriz[linha].comprimento; col++) {
+      if (tetromino.matriz[linha][col]) {
+
+        // fim do jogo se a peça tiver alguma parte fora da tela
+        if (tetromino.linha + linha < 0) {
+          return showGameOver();
+        }
+
+        playfield[tetromino.row + row][tetromino.col + col] = tetromino.name;
+      }
+    }
+  }
+
+  // verifica se há linhas limpas começando de baixo e subindo
+  for (let row = playfield.length - 1; row >= 0; ) {
+    if (playfield[row].every(cell => !!cell)) {
+
+      // solta todas as linhas acima desta
+      for (let r = linha; r >= 0; r--) {
+        for (let c = 0; c < playfield[r].length; c++) {
+          campo de jogo[r][c] = campo de jogo[r-1][c];
+        }
+      }
+    }
+    outro {
+      linha--;
+    }
+  }
+
+  tetromino = getNextTetromino();
+}
+
+// mostra a tela de game over
+função mostrarGameOver() {
+  cancelAnimationFrame(rAF);
+  gameover = verdadeiro;
+
+  context.fillStyle = 'preto';
+  context.globalAlpha = 0,75;
+  context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+
+  context.globalAlpha = 1;
+  context.fillStyle = 'branco';
+  context.font = '36px monoespaçado';
+  context.textAlign = 'centro';
+  context.textBaseline = 'meio';
+  context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2);
+}
+
+tela const = document.getElementById('jogo');
+contexto const = canvas.getContext('2d');
+grade const = 32;
+const tetrominoSequência = [];
+
+// monitora o que está em cada célula do jogo usando um array 2d
+// o campo de jogo do tetris é 10x20, com algumas linhas fora da tela
+campo de jogo const = [];
+
+// preenche o estado vazio
+for (let row = -2; row < 20; row++) {
+  campo de jogo[linha] = [];
+
+  for (deixe col = 0; col < 10; col++) {
+    playfield[linha][col] = 0;
+  }
+}
+
+// como desenhar cada tetraminó
+// @veja https://tetris.fandom.com/wiki/SRS
+const tetrominos = {
+  'EU': [
+    [0,0,0,0],
+    [1,1,1,1],
+    [0,0,0,0],
+    [0,0,0,0]
+  ],
+  'J': [
+    [1,0,0],
+    [1,1,1],
+    [0,0,0],
+  ],
+  'EU': [
+    [0,0,1],
+    [1,1,1],
+    [0,0,0],
+  ],
+  'O': [
+    [1,1],
+    [1,1],
+  ],
+  'S': [
+    [0,1,1],
+    [1,1,0],
+    [0,0,0],
+  ],
+  'Z': [
+    [1,1,0],
+    [0,1,1],
+    [0,0,0],
+  ],
+  'T': [
+    [0,1,0],
+    [1,1,1],
+    [0,0,0],
+  ]
+};
+
+// cor de cada tetraminó
+cores constantes = {
+  'I': 'ciano',
+  'O': 'amarelo',
+  'T': 'roxo',
+  'S': 'verde',
+  'Z': 'vermelho',
+  'J': 'azul',
+  'L': 'laranja'
+};
+
+deixe contar = 0;
+let tetromino = getNextTetromino();
+deixe rAF = nulo; // mantém o controle do quadro de animação para que possamos cancelá-lo
+deixe gameOver = false;
+
+// loop do jogo
+loop de função() {
+  rAF = requestAnimationFrame(loop);
+  context.clearRect(0,0,canvas.width,canvas.height);
+
+  // desenha o campo de jogo
+  for (let row = 0; row < 20; row++) {
+    for (deixe col = 0; col < 10; col++) {
+      if (campo de jogo[linha][coluna]) {
+        const nome = playfield[linha][col];
+        context.fillStyle = cores[nome];
+
+        // desenhando 1 px menor que a grade cria um efeito de grade
+        context.fillRect(col * grade, linha * grade, grade-1, grade-1);
+      }
+    }
+  }
+
+  // desenha o tetromino ativo
+  if (tetrominó) {
+
+    // tetromino cai a cada 35 quadros
+    if (++contagem > 35) {
+      tetromino.row++;
+      contagem = 0;
+
+      // coloca a peça se ela esbarrar em alguma coisa
+      if (!isValidMove(tetromino.matrix, tetromino.row, tetromino.col)) {
+        tetromino.row--;
+        coloqueTetromino();
+      }
+    }
+
+    context.fillStyle = cores[tetromino.name];
+
+    for (let row = 0; row < tetromino.matrix.length; row++) {
+      for (deixe col = 0; col < tetromino.matriz[linha].comprimento; col++) {
+        if (tetromino.matriz[linha][col]) {
+
+          // desenhando 1 px menor que a grade cria um efeito de grade
+          context.fillRect((tetromino.col + col) * grid, (tetromino.row + row) * grid, grid-1, grid-1);
+        }
+      }
+    }
+  }
+}
+
+// escuta os eventos do teclado para mover o tetromino ativo
+document.addEventListener('keydown', function(e) {
+  if (gameOver) retornar;
+
+  // teclas de seta esquerda e direita (mover)
+  if (e.que === 37 || e.que === 39) {
+    const col = e.que === 37
+      ? tetromino.col - 1
+      : tetromino.col + 1;
+
+    if (isValidMove(tetromino.matrix, tetromino.row, col)) {
+      tetromino.col = col;
+    }
+  }
+
+  // tecla de seta para cima (girar)
+  if (e.what === 38) {
+    matriz const = rotate(tetromino.matrix);
+    if (isValidMove(matriz, tetromino.row, tetromino.col)) {
+      tetromino.matriz = matriz;
+    }
+  }
+
+  // tecla de seta para baixo (soltar)
+  if(e.what === 40) {
+    const linha = tetromino.linha + 1;
+
+    if (!isValidMove(tetromino.matrix, linha, tetromino.col)) {
+      tetromino.linha = linha - 1;
+
+      coloqueTetromino();
+      retornar;
+    }
+
+    tetromino.linha = linha;
+  }
+});
+
+// comece o jogo
+rAF = requestAnimationFrame(loop);
+</script>
+</body>
+</html>
